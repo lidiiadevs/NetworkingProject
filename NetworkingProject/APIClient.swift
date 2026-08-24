@@ -8,6 +8,8 @@
 import Foundation
 
 struct APIClient {
+    
+    @concurrent //this struct was running in a main thread but with @concurrent we are switching to a background actor
     func fetch<T: Decodable>(request: URLRequest, type: T.Type) async throws -> T {
         //STEP 1
         //        let request = URLRequest(url: URL(string: "https://dummyjson.com/products/category-list")!)
@@ -16,14 +18,8 @@ struct APIClient {
         let data: Data
         let response: URLResponse
     
-
         do {
-            print("➡️ REQUEST:", request.url?.absoluteString ?? "NO URL")
-
             (data, response) = try await URLSession.shared.data(for: request)
-
-            print("⬅️ RESPONSE:", String(data: data, encoding: .utf8) ?? "NO JSON")
-
         } catch let error as URLError where error.code == .cancelled {
             throw APIError.taskCancellation
         } catch is CancellationError {
@@ -31,16 +27,6 @@ struct APIClient {
         } catch {
             throw APIError.networkError(error)
         }
-        
-//        do {
-//            (data, response) = try await URLSession.shared.data(for: request)
-//        } catch let error as URLError where error.code == .cancelled {
-//            throw APIError.taskCancellation
-//        } catch is CancellationError {
-//            throw APIError.taskCancellation
-//        } catch {
-//            throw APIError.networkError(error)
-//        }
         
         //STEP 2
         guard let httpResponse = response as? HTTPURLResponse else {

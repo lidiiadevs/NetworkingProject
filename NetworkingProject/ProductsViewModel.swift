@@ -10,33 +10,45 @@ import Foundation
 @Observable
 class ProductsViewModel {
     var products: [Product] = []
-    let client = APIClient()
+    let service: ProductsService
+    
+    init(service: ProductsService = DefaultProductsService()) {
+        self.service = service
+    }
     
     func fetchProducts() async {
-        //STEP 1
-        let request = URLRequest(
-            url: URL(string: "https://dummyjson.com/products?limit=10&skip=0")!)
-        //URLRequest makes a little bit more adaptable for get/post/delete instead of URL
         do {
-            let productsResponse = try await client.fetch(request: request, type: ProductResponse.self)
-            self.products = productsResponse.products
-            print("success \(products.count)")
+            self.products = try await service.fetch(skip: 10, limit: 10)
         } catch {
             print(error)
         }
     }
 }
 
-enum APIError: Error {
-    case invalidResponse
-    case requestFailed(statusCode: Int, message: String?)
-    case networkError(Error)
-    case taskCancellation
+protocol ProductsService {
+    func fetch(skip: Int, limit: Int) async throws -> [Product]
+    
 }
 
-struct ServerError: Decodable { //JSONDecoder can only decode types conforming to Decodable
-    let message: String
+struct DefaultProductsService: ProductsService {
+    let client = APIClient()
+    
+    func fetch(skip: Int, limit: Int) async throws -> [Product] {
+        let request = URLRequest(
+            url: URL(string: "https://dummyjson.com/products?limit=\(limit)&skip=\(skip)")!)
+        
+        return try await client.fetch(request: request, type: ProductResponse.self).products
+    }
 }
+
+struct MockProductsService: ProductsService {
+    
+    func fetch(skip: Int, limit: Int) async throws -> [Product] {
+        [Product.example]
+    }
+}
+
+
 
 import Playgrounds
 
