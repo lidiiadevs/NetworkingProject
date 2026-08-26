@@ -9,8 +9,10 @@ import Foundation
 
 @Observable
 class ProductsViewModel {
+    
     var products: [Product] = []
     let service: ProductsService
+    var errorMessage: String?
     
     init(service: ProductsService = DefaultProductsService()) {
         self.service = service
@@ -20,7 +22,7 @@ class ProductsViewModel {
         do {
             self.products = try await service.fetch(skip: 10, limit: 10)
         } catch {
-            print(error)
+            self.errorMessage = error.localizedDescription
         }
     }
 }
@@ -43,8 +45,20 @@ struct DefaultProductsService: ProductsService {
 
 struct MockProductsService: ProductsService {
     
+    let error: APIError?
+    let result: [Product]
+
+    init(error: APIError? = nil, result: [Product] = [Product.example]) {
+        self.error = error
+        self.result = result
+    }
+    
     func fetch(skip: Int, limit: Int) async throws -> [Product] {
-        [Product.example]
+        if let error {
+            throw error
+        } else {
+            result
+        }
     }
 }
 

@@ -17,13 +17,24 @@ struct ProductListView: View {
                 Text(product.title)
             }
         }
+        .overlay(content: {
+            if let error = productsVM.errorMessage {
+                Text(error)
+                    .foregroundStyle(.pink)
+            }
+        })
         .task {
             await productsVM.fetchProducts()
         }
     }
 }
 
-#Preview {
-    @State @Previewable var vm = ProductsViewModel(service: DefaultProductsService())
+#Preview("Happy Path") {
+    @State @Previewable var vm = ProductsViewModel(service: MockProductsService())
+    ProductListView(productsVM: vm)
+}
+
+#Preview("Unhappy Path") {
+    @State @Previewable var vm = ProductsViewModel(service: MockProductsService(error: .invalidResponse))
     ProductListView(productsVM: vm)
 }
