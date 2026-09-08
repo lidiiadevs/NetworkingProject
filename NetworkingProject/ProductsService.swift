@@ -15,10 +15,16 @@ protocol ProductsService {
 
 struct DefaultProductsService: ProductsService {
     let client = APIClient()
+    let baseURL: URL
+    
+    init(baseURL: URL = URL(string: "https://dummyjson.com")!) {
+        self.baseURL = baseURL
+    }
     
     func fetch(skip: Int, limit: Int) async throws -> [Product] {
-        let request = URLRequest(
-            url: URL(string: "https://dummyjson.com/products?limit=\(limit)&skip=\(skip)")!)
+        let endpoint = ProductsEndpoint(limit: limit, skip: skip)
+        let request = try endpoint.makeRequest(baseURL: baseURL)
+      //  URLRequest(url: URL(string: "https://dummyjson.com/products?limit=\(limit)&skip=\(skip)")!)
         
         return try await client.fetch(request: request, type: ProductResponse.self).products
     }
