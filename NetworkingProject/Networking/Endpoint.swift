@@ -17,11 +17,15 @@ public enum HTTPMethod: String {
 
 
 protocol Endpoint {
+    associatedtype Response: Decodable
+    
     var path: String { get }
     var method: HTTPMethod { get }
     var queryItems: [URLQueryItem] { get }
     
     func makeRequest(baseURL: URL) throws -> URLRequest
+    
+    func map(_ data: Data) throws -> Response
 }
 
 extension Endpoint {
@@ -39,30 +43,16 @@ extension Endpoint {
         
         return request
     }
-}
-
-
-struct ProductsEndpoint: Endpoint {
     
-    let path: String = "/products"
-    let method: HTTPMethod = .get
-    
-    var limit: Int
-    var skip: Int
-    
-    var queryItems: [URLQueryItem] {
-        var items: [URLQueryItem] = [
-            URLQueryItem(name: "limit", value: "\(limit)"),
-            URLQueryItem(name: "skip", value: "\(skip)")
-        ]
-        return items
+    func map (_ data: Data) throws -> Response {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .secondsSince1970
+        return try decoder.decode(Response.self, from: data)
     }
 }
 
-struct CategoriesEndpoint: Endpoint {
-   
-    var path: String = "/products/category-list"
-    var method: HTTPMethod = .get
-    var queryItems: [URLQueryItem] { [] }
-}
+
+
+
+
 

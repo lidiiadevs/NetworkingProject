@@ -9,11 +9,22 @@ import Foundation
 
 struct APIClient {
     
+    let baseURL: URL
+    
+    init(baseURL: URL = URL(string: "https://dummyjson.com")!) {
+        self.baseURL = baseURL
+    }
+    
     @concurrent //this struct was running in a main thread but with @concurrent we are switching to a background actor
-    func fetch<T: Decodable>(request: URLRequest, type: T.Type) async throws -> T {
+    func fetch<E: Endpoint>(endpoint: E) async throws -> E.Response {
+   
+//    @concurrent //this struct was running in a main thread but with @concurrent we are switching to a background actor
+//    func fetch<T: Decodable>(request: URLRequest, type: T.Type) async throws -> T {
         //STEP 1
         //        let request = URLRequest(url: URL(string: "https://dummyjson.com/products/category-list")!)
         //      //  URLRequest makes a little bit more adaptable for get/post/delete instead of URL
+        
+        let request = try endpoint.makeRequest(baseURL: baseURL)
         
         let data: Data
         let response: URLResponse
@@ -51,6 +62,8 @@ struct APIClient {
         //STEP 3 - is decoding
         print("REQUEST:", request.url?.absoluteString ?? "")
         print("RAW JSON:", String(data: data, encoding: .utf8) ?? "")
-        return try JSONDecoder().decode(type, from: data)
+        
+       // return try JSONDecoder().decode(E.Response.self, from: data)
+        return try endpoint.map(data)
     }
 }

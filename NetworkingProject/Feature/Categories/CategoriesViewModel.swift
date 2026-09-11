@@ -9,18 +9,24 @@ import Foundation
 
 @Observable
 class CategoriesViewModel {
+    
     var categories: [String] = []
-    let client = APIClient()
+    let service: CategoriesService
+    
+    init(service: CategoriesService = DefaultCategoriesService() ) {
+        self.service = service
+    }
     
     func fetchCategories() async {
-        //STEP 1
-        let request = URLRequest(url: URL(string: "https://dummyjson.com/products/category-list")!)
-        
+      //  let request = URLRequest(url: URL(string: "https://dummyjson.com/products/category-list")!)
         do {
-            let categories = try await client.fetch(request: request, type: [String].self)
+            categories = try await service.fetch()
             print("success \(categories.count)")
         } catch {
             print(error)
         }
     }
 }
+
+
+

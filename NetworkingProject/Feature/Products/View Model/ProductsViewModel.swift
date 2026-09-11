@@ -20,7 +20,7 @@ class ProductsViewModel {
     
     func fetchProducts() async {
         do {
-            self.products = try await service.fetch(skip: 10, limit: 10)
+            self.products = try await service.fetch(skip: 10, limit: 15)
         } catch {
             self.errorMessage = error.localizedDescription
         }
