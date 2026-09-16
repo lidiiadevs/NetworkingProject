@@ -20,7 +20,7 @@ struct DefaultProductsService: ProductsService {
     }
     
     func fetch(skip: Int, limit: Int) async throws -> [Product] {
-        return try await client.fetch(endpoint: ProductsEndpoint(limit: skip, skip: limit)).products
+        return try await client.fetch(endpoint: ProductsEndpoint(limit: limit, skip: skip)).products
     }
 }
 

@@ -20,10 +20,20 @@ class ProductsViewModel {
     
     func fetchProducts() async {
         do {
-            self.products = try await service.fetch(skip: 10, limit: 15)
+            self.products = try await service.fetch(skip: 0, limit: 10)
         } catch {
             self.errorMessage = error.localizedDescription
         }
+    }
+    
+    func fetchMore() async {
+        //TODO
+       // guard products.last?.id == id else { return }
+        
+//        guard products.suffix(3).contains(where: { $0.id == id }) else
+//        { return }
+        
+        print("load more ...")
     }
 }
 

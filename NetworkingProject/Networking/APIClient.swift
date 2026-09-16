@@ -60,8 +60,8 @@ struct APIClient {
         }
         
         //STEP 3 - is decoding
-        print("REQUEST:", request.url?.absoluteString ?? "")
-        print("RAW JSON:", String(data: data, encoding: .utf8) ?? "")
+//        print("REQUEST:", request.url?.absoluteString ?? "")
+//        print("RAW JSON:", String(data: data, encoding: .utf8) ?? "")
         
        // return try JSONDecoder().decode(E.Response.self, from: data)
         return try endpoint.map(data)
