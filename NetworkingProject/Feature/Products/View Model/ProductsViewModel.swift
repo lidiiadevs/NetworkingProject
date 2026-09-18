@@ -33,11 +33,11 @@ class ProductsViewModel {
 //        guard products.suffix(3).contains(where: { $0.id == id }) else
 //        { return }
         do {
-            let nextProducts = try await service.fetch(skip: 10, limit: 10)
+            let nextProducts = try await service.fetch(skip: products.count + 10, limit: 10)
             self.products.append(contentsOf: nextProducts)
         } catch {
             self.errorMessage = error.localizedDescription
-            print(self.errorMessage)
+            print(self.errorMessage ?? "")
         }
         
         print("load more ...")
