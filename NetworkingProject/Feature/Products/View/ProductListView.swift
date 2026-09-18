@@ -38,24 +38,11 @@ struct ProductListView: View {
         .task {
             await productsVM.fetchProducts()
         }
-        .onScrollGeometryChange(for: Bool.self) { geometry in
-            print("geometry \(geometry.contentOffset.y)")
-            //contentSize - how many contents - here 10 cells
-            guard geometry.contentSize.height > 0 else { return false }
-// Initially, the list is empty, so contentSize.height is 0. That's why we need guard
-            let maxOffsets = geometry.contentSize.height - geometry.containerSize.height
-            
-            let currentOffset = geometry.contentOffset.y
-            let triggerDIstance: CGFloat = 300
-            
-            return currentOffset >= maxOffsets - triggerDIstance
-            //Have we scrolled close enough to the bottom that I should trigger loading more items?
-        } action: { wasNearBottom, isNearBottom in
-            guard isNearBottom else { return }
-            Task {
-                await productsVM.fetchMore()
-            }
-        }
+        .onTriggerLoadAt(triggerDistance: 300, of: {
+                    Task {
+                        await productsVM.fetchMore()
+                    }
+        })
     }
 }
 
@@ -71,6 +58,31 @@ struct ProductRow: View {
         .padding(40)
     }
 }
+
+extension View {
+    
+    func onTriggerLoadAt(triggerDistance: CGFloat, of transform: @escaping () -> Void) -> some View {
+        
+        return self
+            .onScrollGeometryChange(for: Bool.self) { geometry in
+               // print("geometry \(geometry.contentOffset.y)")
+                //contentSize - how many contents - here 10 cells
+                guard geometry.contentSize.height > 0 else { return false }
+                // Initially, the list is empty, so contentSize.height is 0. That's why we need guard
+                let maxOffsets = geometry.contentSize.height - geometry.containerSize.height
+                let currentOffset = geometry.contentOffset.y
+                
+                return currentOffset >= maxOffsets - triggerDistance
+                //Have we scrolled close enough to the bottom that I should trigger loading more items?
+            } action: { wasNearBottom, isNearBottom in
+                //Action: ONLY fires when the Bool changes
+                if isNearBottom && !wasNearBottom {
+                    transform()
+                }
+            }
+    }
+}
+
 
 #Preview("Happy Path") {
     @State @Previewable var vm = ProductsViewModel(service: MockProductsService())
