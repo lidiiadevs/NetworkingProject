@@ -34,9 +34,13 @@ struct ProductListView: View {
                 Text(error)
                     .foregroundStyle(.pink)
             }
+            if productsVM.isLoading {
+                ProgressView()
+                    .controlSize(.large)
+            }
         })
         .task {
-            await productsVM.fetchProducts()
+            await productsVM.initialFetchProducts()
         }
         .onTriggerLoadAt(triggerDistance: 300, of: {
                     Task {
