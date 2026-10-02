@@ -30,14 +30,26 @@ struct ProductListView: View {
             }
         }
         .overlay(content: {
-            if let error = productsVM.errorMessage {
+            switch productsVM.loadingState {
+            case .initial, .loading:
+                ProgressView()
+                    .controlSize(.large)
+                
+            case .loaded: EmptyView()
+                
+            case .loadingMore: EmptyView()
+                
+            case .initialLoadError(let error):
+                Text(error)
+                    .foregroundStyle(.red)
+                    .font(.title)
+                    .padding()
+                
+            case .loadMoreError(let error):
                 Text(error)
                     .foregroundStyle(.pink)
             }
-            if productsVM.isLoading {
-                ProgressView()
-                    .controlSize(.large)
-            }
+            
         })
         .task {
             await productsVM.initialFetchProducts()

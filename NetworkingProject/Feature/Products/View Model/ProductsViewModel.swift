@@ -10,11 +10,36 @@ import Foundation
 @Observable
 class ProductsViewModel {
     
-    var products: [Product] = []
-    let service: ProductsService
-    var errorMessage: String?
-    var isLoading: Bool = false
-    var totals: Int? = nil
+    enum LoadingState {
+        case initial
+        case loading
+        case loadingMore
+        case loaded
+        case initialLoadError(String)
+        case loadMoreError(String)
+        
+        var canLoad: Bool {
+            switch self {
+            case .initial:
+                true
+            case .loading:
+                false
+            case .loaded:
+                true
+            case .loadingMore:
+                false
+            case .initialLoadError(let string):
+                true
+            case .loadMoreError(let string):
+                true
+            }
+        }
+    }
+    
+    private(set) var products: [Product] = []
+    var loadingState: LoadingState = .initial
+    private var totals: Int? = nil
+    private let service: ProductsService
     
     init(service: ProductsService = DefaultProductsService()) {
         self.service = service
@@ -24,40 +49,38 @@ class ProductsViewModel {
         //it needs to be done only once, so
         guard products.isEmpty else { return }
         
-        isLoading = true
+        loadingState = .loading
         
-        defer { isLoading = false }
+       // defer { isLoading = false }
         
         do {
             let response = try await service.fetch(skip: 0, limit: 10)
             self.products = response.products
             self.totals = response.total
+            self.loadingState = .loaded
         } catch {
-            self.errorMessage = error.localizedDescription
+            self.loadingState = .initialLoadError(error.localizedDescription)
         }
     }
     
     func fetchMore() async {
         //to prevent unnecessary fetch
-        guard totals != products.count, !isLoading  else { return }
+        guard totals != products.count, loadingState.canLoad else { return }
         print("load more ...")
       
-        isLoading = true
-        defer { isLoading = false }
-       // guard products.last?.id == id else { return }
+        loadingState = .loadingMore
         
-//        guard products.suffix(3).contains(where: { $0.id == id }) else
-//        { return }
         do {
-           // try await Task.sleep(for: .seconds(1))
+            try await Task.sleep(for: .milliseconds(500))
             
             let response = try await service.fetch(skip: products.count, limit: 10)
             
             self.totals = response.total
             self.products.append(contentsOf: response.products)
+            self.loadingState = .loaded
         } catch {
-            self.errorMessage = error.localizedDescription
-            print(self.errorMessage ?? "")
+            self.loadingState = .loadMoreError(error.localizedDescription)
+          //  self.errorMessage = error.localizedDescription
         }
     }
 }
