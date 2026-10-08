@@ -29,25 +29,35 @@ struct ProductListView: View {
 //                    }
             }
         }
-        .overlay(content: {
+        .overlay(alignment: .bottom, content: {
             switch productsVM.loadingState {
             case .initial, .loading:
                 ProgressView()
                     .controlSize(.large)
+                    .frame(maxHeight: .infinity) //makes centered bc ProgressView alignment is initially at the bottom
                 
             case .loaded: EmptyView()
                 
-            case .loadingMore: EmptyView()
+            case .loadingMore:
+                ProgressView()
+                    .controlSize(.small)
+                    .padding()
                 
             case .initialLoadError(let error):
                 Text(error)
                     .foregroundStyle(.red)
                     .font(.title)
                     .padding()
+                    .frame(maxHeight: .infinity)
                 
             case .loadMoreError(let error):
+                // smaller overlay
                 Text(error)
-                    .foregroundStyle(.pink)
+                    .foregroundStyle(.red)
+                    .padding()
+                    .background(.thinMaterial).cornerRadius(5)
+                    .shadow(radius: 5)
+                    .frame(maxHeight: .infinity)
             }
             
         })
@@ -62,18 +72,7 @@ struct ProductListView: View {
     }
 }
 
-struct ProductRow: View {
-    let product: Product
-    
-    var body: some View {
-        VStack {
-            Text(product.id.description)
-            Text(product.title)
-        }
-        .font(.title2)
-        .padding(40)
-    }
-}
+
 
 extension View {
     

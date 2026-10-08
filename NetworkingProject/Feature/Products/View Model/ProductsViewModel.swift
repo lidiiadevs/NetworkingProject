@@ -54,6 +54,7 @@ class ProductsViewModel {
        // defer { isLoading = false }
         
         do {
+//            try await Task.sleep(for: .milliseconds(500))
             let response = try await service.fetch(skip: 0, limit: 10)
             self.products = response.products
             self.totals = response.total
@@ -71,7 +72,7 @@ class ProductsViewModel {
         loadingState = .loadingMore
         
         do {
-            try await Task.sleep(for: .milliseconds(500))
+//            try await Task.sleep(for: .milliseconds(500))
             
             let response = try await service.fetch(skip: products.count, limit: 10)
             
