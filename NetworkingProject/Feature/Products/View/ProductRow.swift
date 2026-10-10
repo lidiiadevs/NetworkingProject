@@ -51,27 +51,39 @@ struct ProductRow: View {
 //    }
         
             var body: some View {
+                
                 HStack {
+                    
                     AsyncImage(url: URL(string: product.thumbnail)) { phase in
                         switch phase {
                         case .empty:
                             Color.gray
+                                .opacity(0.2)
                         case .success(let image):
                             image
                                 .resizable()
                                 .scaledToFit()
-                        case .failure(let error):
-                            Text(error.localizedDescription)
+                        case .failure(_):
+                            Color.gray
+                                .opacity(0.2)
+                            //  Text(error.localizedDescription)
                         @unknown default:
-                            Circle()
-                                .fill(.gray.opacity(0.2))
+                            fatalError()
                         }
                     }
-                    .border(Color.red)
-                    Text(product.title)
-                    //Text(product.id.description)
+                    .frame(width: 100,height: 100)
+                    
+                    VStack(alignment: .leading) {
+                        Text(product.title)
+                            .bold()
+                        Text(product.category.capitalized)
+                        Text("$\(product.price, specifier: "%.2f")")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        //Text(product.id.description)
+                    }
+                   
                 }
-                .font(.title2)
             }
 }
 
