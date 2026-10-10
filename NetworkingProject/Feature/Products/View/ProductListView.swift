@@ -64,7 +64,7 @@ struct ProductListView: View {
         .task {
             await productsVM.initialFetchProducts()
         }
-        .onTriggerLoadAt(triggerDistance: 300, of: {
+        .onTriggerLoadAt(triggerDistance: 600, of: {
                     Task {
                         await productsVM.fetchMore()
                     }
