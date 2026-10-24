@@ -10,65 +10,83 @@ import SwiftUI
 struct ProductListView: View {
     
     let productsVM: ProductsViewModel
+    @State private var searchText = ""
     
     var body: some View {
-        List {
-            ForEach(productsVM.products) { product in
-                ProductRow(product: product)
-//                    .onAppear{
-//                        print("onAppear: \(product.id) ")
-//                    }
-//                    .onDisappear(perform: {
-//                        print("onDisappear \(product.id)")
-//                    })
-//                    .onAppear { //here .task can be used but downside is its cancellation. .onAppear is not so reliable
-//                        Task {
-//                            print("onAppear: \(product.id) ")
-//                            await productsVM.fetchMore(for: product.id)
-//                        }
-//                    }
+        NavigationStack {
+            List {
+                ForEach(productsVM.products) { product in
+                    ProductRow(product: product)
+                    //                    .onAppear{
+                    //                        print("onAppear: \(product.id) ")
+                    //                    }
+                    //                    .onDisappear(perform: {
+                    //                        print("onDisappear \(product.id)")
+                    //                    })
+                    //                    .onAppear { //here .task can be used but downside is its cancellation. .onAppear is not so reliable
+                    //                        Task {
+                    //                            print("onAppear: \(product.id) ")
+                    //                            await productsVM.fetchMore(for: product.id)
+                    //                        }
+                    //                    }
+                }
             }
-        }
-        .overlay(alignment: .bottom, content: {
-            switch productsVM.loadingState {
-            case .initial, .loading:
-                ProgressView()
-                    .controlSize(.large)
-                    .frame(maxHeight: .infinity) //makes centered bc ProgressView alignment is initially at the bottom
-                
-            case .loaded: EmptyView()
-                
-            case .loadingMore:
-                ProgressView()
-                    .controlSize(.small)
-                    .padding()
-                
-            case .initialLoadError(let error):
-                Text(error)
-                    .foregroundStyle(.red)
-                    .font(.title)
-                    .padding()
-                    .frame(maxHeight: .infinity)
-                
-            case .loadMoreError(let error):
-                // smaller overlay
-                Text(error)
-                    .foregroundStyle(.red)
-                    .padding()
-                    .background(.thinMaterial).cornerRadius(5)
-                    .shadow(radius: 5)
-                    .frame(maxHeight: .infinity)
-            }
-            
-        })
-        .task {
-            await productsVM.initialFetchProducts()
-        }
-        .onTriggerLoadAt(triggerDistance: 600, of: {
-                    Task {
-                        await productsVM.fetchMore()
+            .listStyle(.plain)
+            .navigationTitle("Products")
+            .searchable(text: $searchText)
+            .overlay(alignment: .bottom, content: {
+                switch productsVM.loadingState {
+                case .initial, .loading:
+                    ProgressView()
+                        .controlSize(.large)
+                        .frame(maxHeight: .infinity) //makes centered bc ProgressView alignment is initially at the bottom
+                    
+                case .loaded: //EmptyView()
+                    if productsVM.products.isEmpty {
+                        ContentUnavailableView("Nothing Found", systemImage: "magnifyingglass")
                     }
-        })
+                case .loadingMore:
+                    ProgressView()
+                        .controlSize(.small)
+                        .padding()
+                    
+                case .initialLoadError(let error):
+                    Text(error)
+                        .foregroundStyle(.red)
+                        .font(.title)
+                        .padding()
+                        .frame(maxHeight: .infinity)
+                    
+                case .loadMoreError(let error):
+                    // smaller overlay
+                    Text(error)
+                        .foregroundStyle(.red)
+                        .padding()
+                        .background(.thinMaterial).cornerRadius(5)
+                        .shadow(radius: 5)
+                        .frame(maxHeight: .infinity)
+                }
+                
+            })
+            .task(id: searchText, {
+                
+                try? await Task.sleep(for: .seconds(1)) //with try? we ignore everything about throwing, that's why we check if it's cancelled
+                guard !Task.isCancelled else { return }
+                
+                await productsVM.fetch(for: searchText)
+            })
+//            .onChange(of: searchText, { oldValue, newValue in
+//                productsVM.fetch(for: newValue)
+//            })
+            .task {
+                await productsVM.initialFetchProducts()
+            }
+            .onTriggerLoadAt(triggerDistance: 300, of: {
+                Task {
+                    await productsVM.fetchMore()
+                }
+            })
+        }
     }
 }
 

@@ -17,7 +17,7 @@ public enum HTTPMethod: String {
 
 
 protocol Endpoint {
-    associatedtype Response: Decodable
+    associatedtype Response: Decodable //This means the Response type must conform to Decodable
     
     var path: String { get }
     var method: HTTPMethod { get }
