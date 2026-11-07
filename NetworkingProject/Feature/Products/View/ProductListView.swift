@@ -11,6 +11,7 @@ struct ProductListView: View {
     
     let productsVM: ProductsViewModel
     @State private var searchText = ""
+    @State private var filterSheetIsOpen = false
     
     var body: some View {
         NavigationStack {
@@ -33,6 +34,20 @@ struct ProductListView: View {
             }
             .listStyle(.plain)
             .navigationTitle("Products")
+            .toolbar(content: {
+                Toggle(isOn: $filterSheetIsOpen) {
+                    Label("Show Filter", systemImage: "slider.horizontal.3")
+                        .labelStyle(.iconOnly)
+                }
+            })
+            .sheet(isPresented: $filterSheetIsOpen, onDismiss: {
+                print("start the new fetch if something changed")
+            }, content: {
+                FilterProductsView()
+            })
+//            .sheet(isPresented: $filterSheetIsOpen) {
+//                FilterProductsView()
+//            }
             .searchable(text: $searchText)
             .overlay(alignment: .bottom, content: {
                 switch productsVM.loadingState {

@@ -11,6 +11,12 @@ import Foundation
 struct ProductsEndpoint: Endpoint {
     typealias Response = ProductResponse
     
+//    struct Configuration: Equatable {
+//        var searchText: String? = nil
+//        var category: String?
+//        var sortField: String
+//    }
+    
     var path: String {
         if searchQuery != nil {
             "/products/search"
