@@ -11,25 +11,34 @@ import Foundation
 struct ProductsEndpoint: Endpoint {
     typealias Response = ProductResponse
     
-//    struct Configuration: Equatable {
-//        var searchText: String? = nil
-//        var category: String?
-//        var sortField: String
-//    }
+    struct Configuration: Equatable {
+        var searchText: String? = nil
+        var category: String?
+        var sortField: String
+    }
     
     var path: String {
-        if searchQuery != nil {
-            "/products/search"
+        if let category = configuration.category {
+            return "/products/category/\(category)"
+        } else if configuration.searchText != nil {
+            return "/products/search"
         } else {
             "/products"
         }
+        
+//        if searchQuery != nil {
+//            "/products/search"
+//        } else {
+//            "/products"
+//        }
     }
     
     let method: HTTPMethod = .get
     
     var limit: Int
     var skip: Int
-    var searchQuery: String?
+    var configuration: Configuration
+//    var searchQuery: String?
     
     var queryItems: [URLQueryItem] {
         var items: [URLQueryItem] = [
