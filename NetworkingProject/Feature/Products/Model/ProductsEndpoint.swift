@@ -14,14 +14,14 @@ struct ProductsEndpoint: Endpoint {
     struct Configuration: Equatable {
         var searchText: String? = nil
         var category: String?
-        var sortField: String
+        var sortField: SortField?
     }
     
     var path: String {
         if let category = configuration.category {
-            return "/products/category/\(category)"
+            "/products/category/\(category)"
         } else if configuration.searchText != nil {
-            return "/products/search"
+            "/products/search"
         } else {
             "/products"
         }
@@ -46,9 +46,38 @@ struct ProductsEndpoint: Endpoint {
             URLQueryItem(name: "skip", value: "\(skip)")
         ]
         
-        if let searchQuery {
-            items.append(.init(name: "q", value: searchQuery))
+        // search only applies on /products/search path
+        // when category is set, query is ignored
+        if configuration.category == nil {
+            let searchText = configuration.searchText
+            items.append(.init(name: "q", value: searchText))
         }
+        
+        if let sortField = configuration.sortField {
+            switch sortField {
+            case .title:
+                items.append(URLQueryItem(name: "sortBy", value: "title"))
+            case .priceAsc:
+                items.append(URLQueryItem(name: "sortBy", value: "price"))
+                items.append(URLQueryItem(name: "sortBy", value: "asc"))
+            case .priceDesc:
+                items.append(URLQueryItem(name: "sortBy", value: "price"))
+                items.append(URLQueryItem(name: "sortBy", value: "desc"))
+            case .rating:
+                items.append(URLQueryItem(name: "sortBy", value: "rating"))
+            case .stock:
+                items.append(URLQueryItem(name: "sortBy", value: "stock"))
+            case .discount:
+                items.append(URLQueryItem(name: "sortBy", value: "discount"))
+            }
+            
+//            items.append(URLQueryItem(name: "sortBy", value: <#T##String?#>))
+//            items.append(URLQueryItem(name: "sortBy", value: <#T##String?#>))
+        }
+        
+//        if let searchQuery {
+//            items.append(.init(name: "q", value: searchQuery))
+//        }
         
         return items
     }
