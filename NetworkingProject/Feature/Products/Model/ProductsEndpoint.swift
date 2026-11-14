@@ -59,16 +59,16 @@ struct ProductsEndpoint: Endpoint {
                 items.append(URLQueryItem(name: "sortBy", value: "title"))
             case .priceAsc:
                 items.append(URLQueryItem(name: "sortBy", value: "price"))
-                items.append(URLQueryItem(name: "sortBy", value: "asc"))
+                items.append(URLQueryItem(name: "order", value: "asc"))
             case .priceDesc:
                 items.append(URLQueryItem(name: "sortBy", value: "price"))
-                items.append(URLQueryItem(name: "sortBy", value: "desc"))
+                items.append(URLQueryItem(name: "order", value: "desc"))
             case .rating:
                 items.append(URLQueryItem(name: "sortBy", value: "rating"))
             case .stock:
                 items.append(URLQueryItem(name: "sortBy", value: "stock"))
             case .discount:
-                items.append(URLQueryItem(name: "sortBy", value: "discount"))
+                items.append(URLQueryItem(name: "sortBy", value: "discountPercentage"))
             }
             
 //            items.append(URLQueryItem(name: "sortBy", value: <#T##String?#>))
