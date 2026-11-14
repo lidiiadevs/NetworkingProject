@@ -10,8 +10,9 @@ import SwiftUI
 struct FilterProductsView: View {
     
     @State private var categoryViewModel = CategoriesViewModel()
-    @State private var sortOrder = SortField.defaultSortField
-    @State private var selectedCategory: String? = nil
+    
+    @Binding var sortOrder: SortField?
+    @Binding var selectedCategory: String?
     
     @Environment(\.dismiss) var dismiss
     
@@ -59,5 +60,9 @@ struct FilterProductsView: View {
 }
 
 #Preview {
-    FilterProductsView()
+    @State @Previewable var sortOrder: SortField? = .discount
+    @State @Previewable var selectedCategory: String? = nil
+    
+    FilterProductsView(sortOrder: $sortOrder,
+                       selectedCategory: $selectedCategory)
 }

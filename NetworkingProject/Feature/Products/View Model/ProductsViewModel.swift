@@ -39,7 +39,8 @@ class ProductsViewModel {
     private(set) var products: [Product] = []
     var loadingState: LoadingState = .initial
     
-    private var previousSearch: String? = nil
+    var configuration: ProductsEndpoint.Configuration = .init()
+    private var previousConfiguration: ProductsEndpoint.Configuration? = nil
     
     private var totals: Int? = nil
     private let service: ProductsService
@@ -60,12 +61,12 @@ class ProductsViewModel {
 //            try await Task.sleep(for: .milliseconds(500))
             let response = try await service.fetch(skip: 0,
                                                    limit: limits,
-                                                   searchQuery: nil)
+                                                   configuration: configuration)
             self.products = response.products
             self.totals = response.total
             print("initial fetch finished")
             self.loadingState = .loaded
-            self.previousSearch = nil
+            self.previousConfiguration = configuration
         } catch {
             self.loadingState = .initialLoadError(error.localizedDescription)
         }
@@ -82,7 +83,7 @@ class ProductsViewModel {
             //            try await Task.sleep(for: .milliseconds(500))
             let response = try await service.fetch(skip: products.count,
                                                    limit: limits,
-                                                   searchQuery: previousSearch)
+                                                   configuration: configuration)
             
             self.totals = response.total
             self.products.append(contentsOf: response.products)
@@ -96,14 +97,12 @@ class ProductsViewModel {
         }
     }
     
-    func fetch(for searchQuery: String) async {
+    func fetch() async {
         
-        //TODO: exception: load more during paging
-        //guard !searchQuery.isEmpty else { return }
+//        guard (previousSearch ?? "") != searchQuery else {return}
+        guard previousConfiguration != configuration else { return } //prevents more loads
         
-        guard (previousSearch ?? "") != searchQuery else {return}
-        
-        print("search started for \(searchQuery)")
+//        print("search started for \(searchQuery)")
         
         loadingState = .loading
         products = []
@@ -113,12 +112,12 @@ class ProductsViewModel {
 //            try await Task.sleep(for: .milliseconds(500))
             let response = try await service.fetch(skip: 0,
                                                    limit: limits,
-                                                   searchQuery: searchQuery)
+                                                   configuration: configuration)
             self.products = response.products
             self.totals = response.total
-            print("search finished for \(searchQuery)")
+//            print("search finished for \(searchQuery)")
             self.loadingState = .loaded
-            self.previousSearch = searchQuery
+            self.previousConfiguration = configuration
         } catch {
             self.loadingState = .initialLoadError(error.localizedDescription)
         }

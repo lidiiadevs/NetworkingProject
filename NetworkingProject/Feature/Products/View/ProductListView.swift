@@ -9,8 +9,8 @@ import SwiftUI
 
 struct ProductListView: View {
     
-    let productsVM: ProductsViewModel
-    @State private var searchText = ""
+    @Bindable var productsVM: ProductsViewModel
+    
     @State private var filterSheetIsOpen = false
     
     var body: some View {
@@ -42,13 +42,16 @@ struct ProductListView: View {
             })
             .sheet(isPresented: $filterSheetIsOpen, onDismiss: {
                 print("start the new fetch if something changed")
+                Task {
+                    await productsVM.fetch()
+                }
             }, content: {
-                FilterProductsView()
+                FilterProductsView(sortOrder: $productsVM.configuration.sortField, selectedCategory: $productsVM.configuration.category)
             })
 //            .sheet(isPresented: $filterSheetIsOpen) {
 //                FilterProductsView()
 //            }
-            .searchable(text: $searchText)
+            .searchable(text: $productsVM.configuration.searchText)
             .overlay(alignment: .bottom, content: {
                 switch productsVM.loadingState {
                 case .initial, .loading:
@@ -83,12 +86,12 @@ struct ProductListView: View {
                 }
                 
             })
-            .task(id: searchText, {
+            .task(id: productsVM.configuration.searchText, {
                 
                 try? await Task.sleep(for: .seconds(1)) //with try? we ignore everything about throwing, that's why we check if it's cancelled
                 guard !Task.isCancelled else { return }
                 
-                await productsVM.fetch(for: searchText)
+                await productsVM.fetch()
             })
 //            .onChange(of: searchText, { oldValue, newValue in
 //                productsVM.fetch(for: newValue)

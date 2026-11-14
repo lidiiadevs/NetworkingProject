@@ -12,7 +12,7 @@ struct ProductsEndpoint: Endpoint {
     typealias Response = ProductResponse
     
     struct Configuration: Equatable {
-        var searchText: String? = nil
+        var searchText: String = ""
         var category: String?
         var sortField: SortField?
     }
@@ -20,7 +20,7 @@ struct ProductsEndpoint: Endpoint {
     var path: String {
         if let category = configuration.category {
             "/products/category/\(category)"
-        } else if configuration.searchText != nil {
+        } else if !configuration.searchText.isEmpty {
             "/products/search"
         } else {
             "/products"
@@ -48,9 +48,9 @@ struct ProductsEndpoint: Endpoint {
         
         // search only applies on /products/search path
         // when category is set, query is ignored
-        if configuration.category == nil {
-            let searchText = configuration.searchText
-            items.append(.init(name: "q", value: searchText))
+        if configuration.category == nil,
+           !configuration.searchText.isEmpty {
+            items.append(.init(name: "q", value: configuration.searchText))
         }
         
         if let sortField = configuration.sortField {

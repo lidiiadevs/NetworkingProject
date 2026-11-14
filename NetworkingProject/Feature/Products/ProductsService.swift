@@ -8,7 +8,7 @@
 import Foundation
 
 protocol ProductsService: Sendable {
-    func fetch(skip: Int, limit: Int, searchQuery: String?) async throws -> ProductResponse
+    func fetch(skip: Int, limit: Int, configuration: ProductsEndpoint.Configuration) async throws -> ProductResponse
     
 }
 
@@ -19,8 +19,10 @@ struct DefaultProductsService: ProductsService {
         self.client =  APIClient(baseURL: baseURL)
     }
     
-    func fetch(skip: Int, limit: Int, searchQuery: String?) async throws -> ProductResponse {
-        let endpoint = ProductsEndpoint(limit: limit, skip: skip, searchQuery: searchQuery)
+    func fetch(skip: Int, limit: Int, configuration: ProductsEndpoint.Configuration) async throws -> ProductResponse {
+        let endpoint = ProductsEndpoint(limit: limit,
+                                        skip: skip,
+                                        configuration: configuration)
         return try await client.fetch(endpoint: endpoint)
     }
 }
@@ -34,7 +36,7 @@ struct MockProductsService: ProductsService {
         self.result = result
     }
     
-    func fetch(skip: Int, limit: Int, searchQuery: String?) async throws -> ProductResponse {
+    func fetch(skip: Int, limit: Int, configuration: ProductsEndpoint.Configuration) async throws -> ProductResponse {
         if let error {
             throw error
         } else {
