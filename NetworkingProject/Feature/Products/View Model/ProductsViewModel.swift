@@ -34,6 +34,32 @@ class ProductsViewModel {
                 true
             }
         }
+        
+        var currentlyLoading: Bool {
+            switch self {
+            case .loading, .loadingMore: true
+            default: false
+            }
+        }
+    }
+    
+    enum FetchIntents {
+        case initial // onAppear - load if empty
+        case loadMore // scrolling - load next page
+        case search // typing - debounced - reload
+        case filterChanged // sheet dismissed - reload
+        case retry // error button - reload
+        
+        var shouldDebounce: Bool { // wait
+            self == .search
+        }
+        
+        var resetProducts: Bool {
+            switch self {
+            case .initial, .loadMore: return false
+            case .search, .filterChanged, .retry: return true
+            }
+        }
     }
     
     private(set) var products: [Product] = []
@@ -49,6 +75,49 @@ class ProductsViewModel {
     
     init(service: ProductsService = DefaultProductsService()) {
         self.service = service
+    }
+    
+    func load(for intent: FetchIntents) async {
+        guard canLoad(for: intent) else { return }
+        print("load started - \(intent)")
+        loadingState = (intent == .initial) ? .loading : .loadingMore
+        
+        if intent.resetProducts {
+            products = []
+        }
+        
+        do {
+//            try await Task.sleep(for: .milliseconds(500))
+            let response = try await service.fetch(skip: products.count,
+                                                   limit: limits,
+                                                   configuration: configuration)
+            self.products = response.products
+            self.totals = response.total
+            print("load ended - \(intent)")
+            self.loadingState = .loaded
+            self.previousConfiguration = configuration
+        } catch {
+            self.loadingState = .initialLoadError(error.localizedDescription)
+        }
+    }
+    
+    private func canLoad(for intent: FetchIntents) -> Bool {
+        switch intent {
+        case .initial:
+            products.isEmpty
+        case .loadMore:
+            !loadingState.currentlyLoading && hasMoreProductsToLoad()
+        case .search:
+            true
+        case .filterChanged:
+            true
+        case .retry:
+            true
+        }
+    }
+    
+    func hasMoreProductsToLoad() -> Bool {
+        totals != products.count
     }
     
     func initialFetchProducts() async {
@@ -105,6 +174,7 @@ class ProductsViewModel {
 //        print("search started for \(searchQuery)")
         
         loadingState = .loading
+
         products = []
 
        // defer { isLoading = false }
@@ -130,6 +200,16 @@ import Playgrounds
 
 #Playground {
     let vm = ProductsViewModel()
-    await vm.initialFetchProducts()
+    
+    await vm.load(for: .initial)
+    await vm.load(for: .loadMore)
+    
+    print(vm.loadingState)
+    
+    print(vm.products)
+    for product in vm.products {
+        print(product.id)
+    }
+    
 }
 
